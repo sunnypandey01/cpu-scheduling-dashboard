@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CPU Scheduling Dashboard – FCFS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Simple styling -->
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      border: 1px solid #1f2937;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .input-group label {
+      margin-bottom: 3px;
+      color: #9ca3af;
+    }
+
+    .input-group input {
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #020617;
+    }
+
+    .btn-danger {
+      background: #b91c1c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #991b1b;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid #1f2937;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #020617;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    tr:nth-child(even) td {
+      background: #020617;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: inline-block;
+    }
+
+    .badge-process {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .summary-card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid #1f2937;
+    }
+
+    .summary-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .summary-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .gantt-container {
+      margin-top: 10px;
+      background: #020617;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #1f2937;
+    }
+
+    .gantt-bar-row {
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+    }
+
+    .gantt-segment {
+      position: relative;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .gantt-segment.process {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    }
+
+    .gantt-segment.idle {
+      background: #9ca3af;
+      color: #111827;
+      font-style: italic;
+    }
+
+    .gantt-time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+
+    .gantt-time-row span {
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .error-text {
+      color: #f97316;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      .input-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CPU Scheduling Dashboard</h1>
+    <p class="subtitle">Algorithm: First-Come First-Serve (FCFS)</p>
+
+    <!-- Process Input Card -->
+    <div class="card">
+      <div class="card-title">Add Process</div>
+      <form id="process-form">
+        <div class="input-row">
+          <div class="input-group">
+            <label for="pname">Process ID</label>
+            <input id="pname" type="text" placeholder="e.g. P1" required />
+          </div>
+          <div class="input-group">
+            <label for="arrival">Arrival Time</label>
+            <input id="arrival" type="number" min="0" step="1" placeholder="e.g. 0" required />
+          </div>
+          <div class="input-group">
+            <label for="burst">Burst Time</label>
+            <input id="burst" type="number" min="1" step="1" placeholder="e.g. 5" required />
+          </div>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 8px;">
+          <button type="submit" class="btn btn-primary">
+            ➕ Add Process
+          </button>
+          <button type="button" id="clear-processes" class="btn btn-secondary">
+            🗑 Clear All
+          </button>
+        </div>
+        <div id="form-error" class="error-text"></div>
+      </form>
+    </div>
+
+    <!-- Summary & Run Card -->
+    <div class="card">
+      <div class="card-title">Scheduler Summary</div>
+      <div class="summary-grid" id="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Total Processes</div>
+          <div class="summary-value" id="summary-count">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Average Waiting Time</div>
+          <div class="summary-value" id="summary-avg-wt">–</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Average Turnaround Time</div>
+          <div class="summary-value" id="summary-avg-tat">–</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total Completion Time</div>
+          <div class="summary-value" id="summary-total-time">–</div>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button id="run-fcfs" class="btn btn-primary">
+          ▶ Run FCFS Scheduling
+        </button>
+      </div>
+    </div>
+
+    <!-- Process Table -->
+    <div class="card">
+      <div class="card-title">Process Table</div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Process</th>
+              <th>Arrival</th>
+              <th>Burst</th>
+              <th>Start</th>
+              <th>Completion</th>
+              <th>Waiting</th>
+              <th>Turnaround</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="process-table-body">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Gantt Chart -->
+    <div class="card">
+      <div class="card-title">Gantt Chart</div>
+      <div class="gantt-container">
+        <div class="gantt-bar-row" id="gantt-row">
+          <!-- segments injected by JS -->
+        </div>
+        <div class="gantt-time-row" id="gantt-times">
+          <!-- time labels injected by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic -->
+  <script>
+    const processes = []; // { id, name, arrival, burst, start, completion, waiting, tat }
+
+    const form = document.getElementById("process-form");
+    const pnameInput = document.getElementById("pname");
+    const arrivalInput = document.getElementById("arrival");
+    const burstInput = document.getElementById("burst");
+    const formError = document.getElementById("form-error");
+    const tableBody = document.getElementById("process-table-body");
+    const runBtn = document.getElementById("run-fcfs");
+    const clearBtn = document.getElementById("clear-processes");
+    const ganttRow = document.getElementById("gantt-row");
+    const ganttTimes = document.getElementById("gantt-times");
+
+    const summaryCount = document.getElementById("summary-count");
+    const summaryAvgWt = document.getElementById("summary-avg-wt");
+    const summaryAvgTat = document.getElementById("summary-avg-tat");
+    const summaryTotalTime = document.getElementById("summary-total-time");
+
+    let pidCounter = 1;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      formError.textContent = "";
+
+      const name = pnameInput.value.trim() || `P${pidCounter}`;
+      const arrival = Number(arrivalInput.value);
+      const burst = Number(burstInput.value);
+
+      if (Number.isNaN(arrival) || Number.isNaN(burst) || burst <= 0) {
+        formError.textContent = "Arrival time must be ≥ 0 and burst time must be > 0.";
+        return;
+      }
+
+      processes.push({
+        internalId: Date.now() + Math.random(),
+        name,
+        arrival,
+        burst,
+        start: null,
+        completion: null,
+        waiting: null,
+        tat: null
+      });
+
+      pidCounter++;
+      pnameInput.value = "";
+      arrivalInput.value = "";
+      burstInput.value = "";
+      renderTable();
+      updateSummary();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      processes.length = 0;
+      pidCounter = 1;
+      renderTable();
+      updateSummary();
+      renderGantt([]);
+    });
+
+    runBtn.addEventListener("click", () => {
+      if (processes.length === 0) {
+        alert("Add at least one process first.");
+        return;
+      }
+      runFCFS();
+    });
+
+    function deleteProcess(internalId) {
+      const index = processes.findIndex((p) => p.internalId === internalId);
+      if (index !== -1) {
+        processes.splice(index, 1);
+        renderTable();
+        updateSummary();
+        renderGantt([]); // clear gantt for now
+      }
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = "";
+      processes
+        .slice()
+        .sort((a, b) => a.arrival - b.arrival || a.name.localeCompare(b.name))
+        .forEach((p, idx) => {
+          const tr = document.createElement("tr");
+
+          const cells = [
+            idx + 1,
+            `<span class="badge badge-process">${p.name}</span>`,
+            p.arrival,
+            p.burst,
+            p.start !== null ? p.start : "-",
+            p.completion !== null ? p.completion : "-",
+            p.waiting !== null ? p.waiting : "-",
+            p.tat !== null ? p.tat : "-"
+          ];
+
+          cells.forEach((value) => {
+            const td = document.createElement("td");
+            td.innerHTML = value;
+            tr.appendChild(td);
+          });
+
+          const actionTd = document.createElement("td");
+          const btn = document.createElement("button");
+          btn.textContent = "Remove";
+          btn.className = "btn btn-danger btn-sm";
+          btn.onclick = () => deleteProcess(p.internalId);
+          actionTd.appendChild(btn);
+          tr.appendChild(actionTd);
+
+          tableBody.appendChild(tr);
+        });
+    }
+
+    function updateSummary() {
+      summaryCount.textContent = processes.length;
+      const completed = processes.filter((p) => p.waiting !== null && p.tat !== null);
+      if (completed.length === 0) {
+        summaryAvgWt.textContent = "–";
+        summaryAvgTat.textContent = "–";
+        summaryTotalTime.textContent = "–";
+      } else {
+        const avgWt =
+          completed.reduce((sum, p) => sum + p.waiting, 0) / completed.length;
+        const avgTat =
+          completed.reduce((sum, p) => sum + p.tat, 0) / completed.length;
+        const totalTime = Math.max(...completed.map((p) => p.completion));
+
+        summaryAvgWt.textContent = avgWt.toFixed(2);
+        summaryAvgTat.textContent = avgTat.toFixed(2);
+        summaryTotalTime.textContent = totalTime.toFixed(0);
+      }
+    }
+
+    function runFCFS() {
+      // Work on a copy sorted by arrival time
+      const sorted = processes
+        .slice()
+        .sort((a, b) => a.arrival - b.arrival || a.name.localeCompare(b.name));
+
+      let currentTime = 0;
+      const segments = [];
+
+      sorted.forEach((p) => {
+        // CPU idle time before this process arrives?
+        if (currentTime < p.arrival) {
+          segments.push({
+            type: "idle",
+            label: "Idle",
+            start: currentTime,
+            end: p.arrival
+          });
+          currentTime = p.arrival;
+        }
+
+        p.start = currentTime;
+        p.completion = p.start + p.burst;
+        p.tat = p.completion - p.arrival;
+        p.waiting = p.start - p.arrival;
+
+        segments.push({
+          type: "process",
+          label: p.name,
+          start: p.start,
+          end: p.completion
+        });
+
+        currentTime = p.completion;
+      });
+
+      renderTable();
+      updateSummary();
+      renderGantt(segments);
+    }
+
+    function renderGantt(segments) {
+      ganttRow.innerHTML = "";
+      ganttTimes.innerHTML = "";
+
+      if (!segments || segments.length === 0) {
+        const emptyDiv = document.createElement("div");
+        emptyDiv.style.padding = "8px";
+        emptyDiv.style.fontSize = "0.85rem";
+        emptyDiv.style.color = "#9ca3af";
+        emptyDiv.textContent = "Run the scheduler to see the Gantt chart.";
+        ganttRow.appendChild(emptyDiv);
+        return;
+      }
+
+      const maxTime = Math.max(...segments.map((s) => s.end));
+      const timeLabels = new Set([0]);
+
+      segments.forEach((seg) => {
+        const widthPercent = ((seg.end - seg.start) / maxTime) * 100;
+        const div = document.createElement("div");
+        div.className =
+          "gantt-segment " + (seg.type === "idle" ? "idle" : "process");
+        div.style.width = widthPercent + "%";
+        div.textContent = seg.label;
+        ganttRow.appendChild(div);
+
+        timeLabels.add(seg.start);
+        timeLabels.add(seg.end);
+      });
+
+      const sortedTimes = Array.from(timeLabels).sort((a, b) => a - b);
+      sortedTimes.forEach((t) => {
+        const span = document.createElement("span");
+        span.textContent = t;
+        ganttTimes.appendChild(span);
+      });
+    }
+
+    // Initial state
+    renderTable();
+    renderGantt([]);
+    updateSummary();
+  </script>
+</body>
+</html>
