@@ -14,20 +14,12 @@ Waiting time
 
 Turnaround time
 
-✅ Visual Gantt Chart
-Displays how each process executes over time in an interactive timeline.
-
-✅ Performance Summary
-Shows total processes, average waiting time, average turnaround time, and total completion time.
-
-✅ Lightweight & Responsive
-No backend or installation needed — runs entirely in your browser!
 
 🖥️ Live Demo
 
 🔗 View Live on GitHub Pages
 
-(Replace with your actual link once deployed)
+
 
 🧩 Tech Stack
 Layer	Technology
@@ -103,3 +95,4 @@ Pull requests are always welcome!
 🏁 License
 
 This project is licensed under the MIT License — free to use and modify.
+
